@@ -35,47 +35,7 @@ def credentials_spotify():
     
     return sp, spt
 
-
-
-#######
-
-# get artist's ID from his name
-def get_artist_id(sp):
-    
-    results = sp.search(q = 'artist:' + artist_name, type = 'artist')
-    items = results['artists']['items']
-    if len(items) > 0:
-        artist = items[0]
-        print(artist['name'], '\n', artist['uri'])   # spotify:artist:6XpaIBNiVzIetEPCWDvAFP
-        #artist_id = artist['uri'].split(':')[2]
-        artist_id = artist['id']
-        
-    return artist_id
-    
-    
-
-    
-# ATTENTION CODE POUR UN SEUL ALBUM POUR LE MOMENT - A ARRANGER POUR PLUS
-def get_albums_id(sp, artist_id, limit_nb_albums=False):
-    
-    albums_results = sp.artist_albums(artist_id, limit_nb_albums)
-    #print(list(albums_results.keys()))  # ['href', 'items', 'limit', 'next', 'offset', 'previous', 'total']
-      
-# =============================================================================
-#         inside the main dictionary, access 'items' key. 
-#         'items' has a unique value which is a list of a single element containing 
-#         a nested dictionary from which we access to the value of the key 'id'
-# =============================================================================
-    album_id = albums_results.get('items', {})[0].get('id') 
-
-    # we can also access to the its name, if needed
-    album_name = albums_results.get('items', {})[0].get('name')
-    
-    print(album_id + '\n' + album_name)
-    
-    return album_id
-    
-#########    
+  
 
 
 # =============================================================================
@@ -93,15 +53,13 @@ if __name__ == "__main__" :
     artist_name = 'Whitney Houston'   
     
     gd = Get_data(artist_name)
-    print(sp)
-    artist_id = get_artist_id(sp)
-    print(sp)
-    
-    albums_results = sp.artist_albums(artist_id, limit=1)
-    print(list(albums_results.keys()))  # ['href', 'items', 'limit', 'next', 'offset', 'previous', 'total']    
-    
-    #albums_id = get_albums_id(sp, artist_id, 1)
 
-    #tracks_id = gd.get_tracks_id(albums_id)
+    artist_id = gd.get_artist_id(sp)
+    
+    #albums_results = sp.artist_albums(artist_id, limit=1)   
+    
+    albums_ids_list = gd.get_albums_ids(sp, artist_id, 3)
+
+    tracks_id = gd.get_tracks_id(sp, albums_ids_list)
 
 
