@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+pd.set_option("display.max_columns", None)
+from time import sleep
+import random
 
 # =============================================================================
 # Here is the class "Get_data" which allows to create an "artist" object. 
@@ -63,32 +66,89 @@ class Get_data:
     
     
     # STEP 3    
-    # get all tracks URI for each of the artist's album
-    def get_tracks_id(self, sp, albums_ids_list):
+    # get all tracks info for an artist's albums and create .csv
+    def get_tracks_info(self, sp, albums_ids_list):
         
-        track_info_dict = {}
-        for album_id in albums_ids_list:
-            album_name = sp.album(album_id)['name']
-            alb_release_date = sp.album(album_id)['release_date']
-            print(album_name)
-            print('HEYYYYYYYYYYYYYYYYYYY')
+        tracks_ids_list = []                                    # this is used for the track's features part
+        track_info_dict = {}                                    # dictionary that contains info of the tracks
+        for album_id in albums_ids_list:                        # loop over albums one by one
+            album_info = sp.album(album_id)                     # one sp.album call for each album ----SP
+            album_name = album_info['name']
+            alb_release_date = album_info['release_date']
+            artist_name = album_info['artists'][0]['name']
+            artist_id = album_info['artists'][0]['id']
+            print(artist_name)
+            print('HEYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY')            
+            #print(type(sp.album_tracks(album_id)['items']))    # list
+                        
+# =============================================================================
+#             note : if we call sp.audio_features when we loop over each track, it can be time consuming.
+#             so it may be better to create a list of the tracks IDs first and retrieve the features from it at once.
+#             since the process is done album by album, the order of the tracks' basic info and the tracks ID
+#             will match correctly.
+#             but i changed my mind... it's not that time consuming in the end, so we call sp.audio_features in the loop for
+#             for each track.
+#             in order to avoid being flagged as a bot by the website, better making requests at random delays.
+# =============================================================================
 
-            for track in sp.album_tracks(album_id)['items']:
-                track_id = track['id']
-                #track_name = track['name']
-                #print(track_id, track_name)    # type->str
+            
+            album_tracks_info = sp.album_tracks(album_id)       # one sp.album_tracks for each album ----SP    
+            for track in album_tracks_info['items']:            # loop over tracks one by one
                 
-                track_info_dict[track_id] = {}
+                # retrieve basic information about each track
+                track_id = track['id']
+                tracks_ids_list.append(track_id)
+                
+                track_info_dict = {}#[track_id] = {}
+                track_info_dict[track_id]['track_id'] = track_id
                 track_info_dict[track_id]['track_name'] = track['name'] 
                 track_info_dict[track_id]['track_number'] = track['track_number']
-                track_info_dict[track_id]['track_id'] = track['id']
+                track_info_dict[track_id]['artist_name'] = artist_name
+                track_info_dict[track_id]['id'] = artist_id
                 track_info_dict[track_id]['album_name'] = album_name
                 track_info_dict[track_id]['album_id'] = album_id
                 track_info_dict[track_id]['alb_release_date'] = alb_release_date
-                print(track_info_dict)
-                df = pd.DataFrame.from_dict(track_info_dict, orient='index')
-                print(df)
+                
+        df = pd.DataFrame.from_dict(track_info_dict, orient='index')        
+        print(len(tracks_ids_list))
+             
+        
+        all_tracks_features = sp.audio_features(tracks_ids_list)   # bypass the overall nb requests limit and works on 100 ids at a time
+        print(all_tracks_features)
+        
+        danceability = all_tracks_features[0]['danceability']
+        energy = all_tracks_features[0]['energy']
+        loudness = all_tracks_features[0]['loudness']
+        speechiness = all_tracks_features[0]['speechiness']
+        acousticness = all_tracks_features[0]['acousticness']
+        instrumentalness = all_tracks_features[0]['instrumentalness']
+        liveness = all_tracks_features[0]['liveness']
+        valence = all_tracks_features[0]['valence']
+        tempo = all_tracks_features[0]['tempo']
+        
+        
+# =============================================================================
+#                 # retrieve features about each track
+#                 track_info_dict[track_id]['danceability'] = sp.audio_features(track_id)[0]['danceability']
+#                 track_info_dict[track_id]['energy'] = sp.audio_features(track_id)[0]['energy']
+#                 track_info_dict[track_id]['loudness'] = sp.audio_features(track_id)[0]['loudness']
+#                 track_info_dict[track_id]['speechiness'] = sp.audio_features(track_id)[0]['speechiness']
+#                 track_info_dict[track_id]['acousticness'] = sp.audio_features(track_id)[0]['acousticness']
+#                 track_info_dict[track_id]['instrumentalness'] = sp.audio_features(track_id)[0]['instrumentalness']
+#                 track_info_dict[track_id]['liveness'] = sp.audio_features(track_id)[0]['liveness']
+#                 track_info_dict[track_id]['valence'] = sp.audio_features(track_id)[0]['valence']
+#                 track_info_dict[track_id]['tempo'] = sp.audio_features(track_id)[0]['tempo']   
+#                 
+#             sleep(np.random.uniform(0.1, 0.9))   # break of Xsec in range between 0.1 and 0.9           
+#                 
+#         df = pd.DataFrame.from_dict(track_info_dict, orient='index')
+#         print(df)
+#         df.to_csv('./music.csv')
+# =============================================================================
 
+
+# note : no need to return these info retrieved at the end of the function, just need to create a .csv right
+# away when we got the info, otherwise it is just a waste of memory                
 
 
 
