@@ -1,8 +1,11 @@
 import spotipy
 import os 
+import pandas as pd
+import yaml
 from spotipy import SpotifyClientCredentials, util
 from get_data import Get_data
-import yaml
+from clustering import cluster
+
 
 
 def credentials_spotify():
@@ -50,22 +53,34 @@ def create_dir(path, dirname):
 if __name__ == "__main__" :
     
     #sp, spt = credentials_spotify()
-    sp = credentials_spotify()
+#    sp = credentials_spotify()
 
     #artist_name = input('Artist name : ')
     artist_name = 'Whitney Houston'
     print(artist_name)
     
-    create_dir('./', artist_name)
+    path = './'
+#    create_dir(path, artist_name)
+
+
+    # STEP : GET TRACKS AND AUDIO FEATURES INTO .CSV    
+# =============================================================================
+#     gd = Get_data(artist_name)
+#     artist_id = gd.get_artist_id(sp)       
+#     albums_ids_list = gd.get_albums_ids(sp, artist_id, 20)
+#     tracks_ids_list = gd.get_tracks_ids(sp, albums_ids_list)
+#     tracks_info_df = gd.get_tracks_info(sp, tracks_ids_list)
+#     tracks_info_df.to_csv(os.path.join('./'+artist_name, f"{artist_name}.csv"))
+# =============================================================================
+
+
+    # STEP : CLUSTER TRACKS BY MOOD
     
-    gd = Get_data(artist_name)
-
-    artist_id = gd.get_artist_id(sp)   
+    columns_keep = ['track_id', 'track_name', 'artist', 'artist_id', \
+                  'danceability', 'energy', 'loudness', 'speechiness', 'acousticness',\
+                      'instrumentalness', 'valence'] 
     
-    albums_ids_list = gd.get_albums_ids(sp, artist_id, 20)
-
-    tracks_ids_list = gd.get_tracks_ids(sp, albums_ids_list)
-
-    tracks_info_df = gd.get_tracks_info(sp, tracks_ids_list)
-    tracks_info_df.to_csv(os.path.join('./'+artist_name, f"{artist_name}.csv"))
-
+    filepath = path+artist_name+ f'/{artist_name}.csv'
+    df = pd.read_csv(filepath, usecols=columns_keep)    
+    cluster(df)
+    
