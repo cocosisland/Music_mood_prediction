@@ -4,6 +4,10 @@ pd.set_option("display.max_columns", None)
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
+import seaborn as sns
+from sklearn.decomposition import PCA 
+from sklearn.datasets import make_blobs
+
 
 
 # K-Means Clustering Algorithm
@@ -36,7 +40,7 @@ def cluster(df):
     print(type(df_features))
     
     
-    # Search for the optimal K       - pip install threadpoolctl --upgrade
+    # Search for the optimal K       probably need-> pip install threadpoolctl --upgrade
     Sum_of_squared_distances = []
     K = range(1,15)
     for k in K:
@@ -45,31 +49,24 @@ def cluster(df):
         Sum_of_squared_distances.append(km.inertia_)
         
         
-    print(Sum_of_squared_distances)    
-# =============================================================================
-# [66.0998554254598, 33.156726964896286, 28.474052198243207, 24.154368956230655, 
-#  21.5357941472274, 19.814870202993276, 17.85359748580357, 16.03710916218415, 
-#  14.96126655248069, 14.037825444950432, 13.35277304124485, 12.53941424106372, 
-#  11.680885849406632, 11.381927024339706] 
-# =============================================================================
+    print(Sum_of_squared_distances)    # list of 15 values
+
 
     # plot graph to find k
 #    optimal_k(Sum_of_squared_distances)    # ------> Optimal k = 4
 
+    pca = PCA(2)    # dimensionality reduction in 2D. Note: PCA reduces the dimensionality without losing information from any features
+    pca_df = pd.DataFrame(pca.fit_transform(df_features), columns=['x','y']) 
 
-    kmeans = KMeans(n_clusters = 4)
-    kmeans.fit(df_features)
-    y_km = kmeans.predict(df_features)
+    # train a K-Means cluster on the tracks data that will try to find each blob's center
+    # and assign each instance to the closest blob.
+    kmeans = KMeans(n_clusters = 4).fit(df_features)
     
-# =============================================================================
-# plt.scatter(df_features[:, 0], df_features[:, 1], c=y_km, s=50, cmap='viridis')
-# 
-# centers = km.cluster_centers_
-# plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5);    
-# =============================================================================
-
+    pca_df['cluster'] = pd.Categorical(kmeans. labels_)
+    sns.scatterplot(x="x", y="y", hue="cluster", data=pca_df)
     
-    labels = KMeans(4, random_state=0).fit_predict(df_features)
-    plt.scatter(df_features[:, 0], df_features[:, 1], c=labels, s=50, cmap='viridis');
+    print(pca_df)
 
-   
+    df.insert(4, 'label', pca_df['cluster'])
+    print(df)
+    return df
