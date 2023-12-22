@@ -17,3 +17,10 @@ Nom de l'artiste (main) -> ID de l'artiste (step 1) -> liste d'albums (step 2) -
 
 - get_data_API_LIMIT_REACHED.py :
 C'est une première tentative de programme qui extrait les données voulues, et qui marche, mais on atteint assez rapidement la limite du nombre d'appels API. Le code dans get_data.py contourne ce problème en réduisant le nombre d'appels. get_data_API_LIMIT_REACHED.py n'est pas appelé dans le programme final!
+
+
+AUTRES FICHIERS :
+L'image clustering.png représente les clusters, en se basant sur les audio_features des titres de 5 artistes choisis.
+
+youyou_labels.csv est le fichier final contenant les données de plusieurs artistes aux styles musicaux différents, labellisés de 0 à 4 (en 4 clusters), qui servira de dataset pour le machine learning
+
