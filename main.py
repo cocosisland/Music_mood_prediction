@@ -45,8 +45,60 @@ def create_dir(path, dirname):
   
 
 
+
+def get_data_per_artist(sp, artist_name, path):
+
+    #create_dir(path, folder)
+    create_dir(path, artist_name)
+    
+    gd = Get_data(artist_name)
+    artist_id = gd.get_artist_id(sp)       
+    albums_ids_list = gd.get_albums_ids(sp, artist_id, 20)
+    tracks_ids_list = gd.get_tracks_ids(sp, albums_ids_list)
+    tracks_info_df = gd.get_tracks_info(sp, tracks_ids_list)
+    tracks_info_df.to_csv(os.path.join(path+artist_name, f"{artist_name}.csv"))
+
+
+
+def artists_data_into_csv(path, folder, filename):
+            
+    bag = glob.glob(path+folder+'*.csv')        
+    artists = []
+    for file in bag:
+        df = pd.read_csv(file)
+        df.reset_index(drop=True, inplace=True)  
+        artists.append(df)
+    df_art = pd.concat(artists)   
+    #df_art = df_art.sample(frac=1, axis=1).reset_index(drop=True)
+    df_art.to_csv(path+folder+filename+'.csv')   
+
+
+
+def cluster_tracks_csv(path, folder, file_unlabeled, columns_keep, artists_list, file_labeled):
+    
+    #filepath = path+artist_name+ f'/{artist_name}.csv'
+    filepath = path+folder+file_unlabeled+'.csv'
+    df = pd.read_csv(filepath, usecols=columns_keep)    
+    df_labeled = cluster(df, artists_list)
+
+    #df_labeled.to_csv(os.path.join('./'+artist_name, f"{artist_name}_labels.csv"))
+    df_labeled.to_csv(os.path.join(path+folder, f'{file_labeled}.csv'))
+
+    # count labels occurences for aaalll artists (with featuring artists included in an artist album etc)
+    #counts = df_labeled.groupby('artist')['label'].value_counts()
+    #print(counts)
+    
+    # count labels occurences for selected artists
+    for art in artists_list:
+        counts2 = df_labeled[df_labeled['artist']==art].groupby('artist')['label'].value_counts()
+        print(counts2)
+        print('\n')
+
+    
+    
+
 # =============================================================================
-# To begin with :
+# WAY TO START :
 # Set up Spotify credentials and get access authorisation
 # Choose few artists
 # Retrieve albums and tracks and informations related
@@ -56,48 +108,30 @@ if __name__ == "__main__" :
     
     #sp, spt = credentials_spotify()
     sp = credentials_spotify()
-
+    
     #artist_name = input('Artist name : ')
-    artist_name = 'Louis Armstrong' #'2pac' #'Slipknot' # 'DJ Okawari' #'Whitney Houston'
-    artists_list = ['Louis Armstrong', '2pac', 'Slipknot', 'DJ Okawari', 'Whitney Houston']
+    artist_name = 'Donna Summer' #'Boney James' #'Louis Armstrong' #'2pac' #'Slipknot' # 'DJ Okawari' #'Whitney Houston'
+    artists_list = ['Boney James', '2Pac', 'Slipknot', 'DJ Okawari', 'Whitney Houston']
     print(artist_name)
     
     path = './'
-    create_dir(path, 'artists/')
-    #create_dir(path+'artists/', artist_name)
-
-
-    # STEP : GET TRACKS AND AUDIO FEATURES INTO .CSV    
-    gd = Get_data(artist_name)
-    artist_id = gd.get_artist_id(sp)       
-    albums_ids_list = gd.get_albums_ids(sp, artist_id, 20)
-    tracks_ids_list = gd.get_tracks_ids(sp, albums_ids_list)
-    tracks_info_df = gd.get_tracks_info(sp, tracks_ids_list)
-    tracks_info_df.to_csv(os.path.join('./'+artist_name, f"{artist_name}.csv"))
-
-
-    # STEP : GATHER THE ARTISTS' DATA INTO ONE FILE        
-    bag = glob.glob('./artists/*.csv')        
-    artists = []
-    for file in bag:
-        df = pd.read_csv(file)
-        df.reset_index(inplace=True)  
-        artists.append(df)
-    df_art = pd.concat(artists)   
-    #df_art = df_art.sample(frac=1, axis=1).reset_index(drop=True)
-    df_art.to_csv("./artists/youyou.csv")     
-
-
-    # STEP : CLUSTER TRACKS BY MOOD    
+    folder = 'artists/'    
+    file_labels_NO = 'artists_data1'
+    file_labels_YES = 'artists_data_labeled'
+    
+    
+    # 1) GET TRACKS AND AUDIO FEATURES OF ONE ARTIST INTO .CSV (SPOTIPY)
+    #    get_data_per_artist(sp, artist_name, path)
+    
+    
+    # 2) GATHER THE ARTISTS' DATA INTO ONE FILE
+    artists_data_into_csv(path, folder, file_labels_NO)
+    
+    
+    # 3) CLUSTER TRACKS BY MOOD    
     columns_keep = ['track_id', 'track_name', 'preview_url', 'artist', 'artist_id', \
                   'danceability', 'energy', 'loudness', 'speechiness', 'acousticness',\
                       'instrumentalness', 'valence'] 
     
-    #filepath = path+artist_name+ f'/{artist_name}.csv'
-    filepath = path+"artists/youyou.csv"
-    df = pd.read_csv(filepath, usecols=columns_keep)    
-    df_labeled = cluster(df)
-
-    #df_labeled.to_csv(os.path.join('./'+artist_name, f"{artist_name}_labels.csv"))
-    df_labeled.to_csv(os.path.join('./artists/', "youyou_labels.csv"))
+    cluster_tracks_csv(path, folder, file_labels_NO, columns_keep, artists_list, file_labels_YES)
 
