@@ -23,17 +23,16 @@ def optimal_k(Sum_of_squared_distances):
     plt.show()
 
     
-def cluster(df):
+def cluster(df, artists_list):
     
     print(df.shape)  # (231, 11)
 
     scaler = MinMaxScaler()
     df['loudness_scaled'] = scaler.fit_transform(df[['loudness']])
-    #print(df['loudness_scaled'])
-
+    df['tempo_scaled'] = scaler.fit_transform(df[['tempo']])
 
     features_cols = ['danceability', 'energy', 'loudness_scaled', 'speechiness', 'acousticness',\
-                      'instrumentalness', 'valence']
+                      'instrumentalness', 'valence', 'tempo_scaled']
     
     df_features = df[df.columns.intersection(features_cols)]
     print(df_features.shape)
@@ -63,7 +62,7 @@ def cluster(df):
     kmeans = KMeans(n_clusters = 4).fit(df_features)
     
     pca_df['cluster'] = pd.Categorical(kmeans. labels_)
-    sns.scatterplot(x="x", y="y", hue="cluster", data=pca_df)
+    sns.scatterplot(x="x", y="y", hue="cluster", data=pca_df).set(title=', '.join(artists_list))
     
     print(pca_df)
 
