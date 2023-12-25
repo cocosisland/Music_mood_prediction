@@ -116,8 +116,8 @@ if __name__ == "__main__" :
     
     path = './'
     folder = 'artists/'    
-    file_labels_NO = 'artists_data1'
-    file_labels_YES = 'artists_data_labeled'
+    file_labels_NO = 'artists_data_labels_NO'
+    file_labels_YES = 'artists_data_labels_YES'
     
     
     # 1) GET TRACKS AND AUDIO FEATURES OF ONE ARTIST INTO .CSV (SPOTIPY)
@@ -131,7 +131,6 @@ if __name__ == "__main__" :
     # 3) CLUSTER TRACKS BY MOOD    
     columns_keep = ['track_id', 'track_name', 'preview_url', 'artist', 'artist_id', \
                   'danceability', 'energy', 'loudness', 'speechiness', 'acousticness',\
-                      'instrumentalness', 'valence'] 
+                      'instrumentalness', 'valence', 'tempo'] 
     
     cluster_tracks_csv(path, folder, file_labels_NO, columns_keep, artists_list, file_labels_YES)
-
