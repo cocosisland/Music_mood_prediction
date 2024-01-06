@@ -7,7 +7,9 @@ import glob
 from spotipy import SpotifyClientCredentials, util
 from get_data import Get_data
 from clustering import cluster
-
+#from classif_model import clean_df
+from classif_model import ML_main
+from classif_model import test_prediction
 
 
 def credentials_spotify():
@@ -91,8 +93,8 @@ def cluster_tracks_csv(path, folder, file_unlabeled, columns_keep, artists_list,
     # count labels occurences for selected artists
     for art in artists_list:
         counts2 = df_labeled[df_labeled['artist']==art].groupby('artist')['label'].value_counts()
-        print(counts2)
-        print('\n')
+        #print(counts2)
+        #print('\n')
 
     
     
@@ -110,9 +112,9 @@ if __name__ == "__main__" :
     sp = credentials_spotify()
     
     #artist_name = input('Artist name : ')
-    artist_name = 'Donna Summer' #'Boney James' #'Louis Armstrong' #'2pac' #'Slipknot' # 'DJ Okawari' #'Whitney Houston'
+    artist_name = 'Nujabes' #'Donna Summer' #'Boney James' #'Louis Armstrong' #'2pac' #'Slipknot' # 'DJ Okawari' #'Whitney Houston'
     artists_list = ['Boney James', '2Pac', 'Slipknot', 'DJ Okawari', 'Whitney Houston']
-    print(artist_name)
+    #print(artist_name)
     
     path = './'
     folder = 'artists/'    
@@ -121,11 +123,11 @@ if __name__ == "__main__" :
     
     
     # 1) GET TRACKS AND AUDIO FEATURES OF ONE ARTIST INTO .CSV (SPOTIPY)
-    #    get_data_per_artist(sp, artist_name, path)
+    #get_data_per_artist(sp, artist_name, path)
     
     
     # 2) GATHER THE ARTISTS' DATA INTO ONE FILE
-    artists_data_into_csv(path, folder, file_labels_NO)
+    #artists_data_into_csv(path, folder, file_labels_NO)
     
     
     # 3) CLUSTER TRACKS BY MOOD    
@@ -133,4 +135,15 @@ if __name__ == "__main__" :
                   'danceability', 'energy', 'loudness', 'speechiness', 'acousticness',\
                       'instrumentalness', 'valence', 'tempo'] 
     
-    cluster_tracks_csv(path, folder, file_labels_NO, columns_keep, artists_list, file_labels_YES)
+    #cluster_tracks_csv(path, folder, file_labels_NO, columns_keep, artists_list, file_labels_YES)
+
+
+    # 4) BUILD THE MODEL
+    model = ML_main(filepath = path+folder+file_labels_YES+'.csv')
+
+
+    # 5) TEST THE MODEL WITH A SONG
+    artist_test_name = 'Nujabes' #'Louis Armstrong'
+    song = 'Spiral' #'The Lonesome Road'
+    #song = 'West End Blues'
+    test_prediction(filepath = path+artist_test_name+'/'+artist_test_name+'.csv', song=song , model=model)
